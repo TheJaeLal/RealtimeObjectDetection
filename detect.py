@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 import tensorflow as tf
 
 import numpy as np
@@ -11,9 +5,6 @@ import os
 
 import utils
 import config
-
-
-# In[2]:
 
 
 #Load the frozen inference graph..
@@ -27,21 +18,12 @@ with detection_graph.as_default():
         tf.import_graph_def(od_graph_def)
 
 
-# In[3]:
-
-
 #Get the class_label_map dict and list of image names in input directory..
 class_map = utils.get_class_map(config.class_map_file)
 img_names = utils.get_dir_images(config.test_imgs_dir)
 
 
-# In[4]:
-
-
 # names = [n.name for n in sess.graph.as_graph_def().node]
-
-
-# In[5]:
 
 
 with tf.Session(graph = detection_graph) as sess:
@@ -72,4 +54,3 @@ with tf.Session(graph = detection_graph) as sess:
         
         out_path = os.path.join(config.result_imgs_dir,img_name)
         utils.save_image(out_path,test_img)
-
