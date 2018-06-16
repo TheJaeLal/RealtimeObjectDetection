@@ -24,12 +24,19 @@ class_map = utils.get_class_map(config.class_map_file)
 # names = [n.name for n in sess.graph.as_graph_def().node]
 
 with tf.Session(graph = detection_graph) as sess:
+    frame_count = 0
     while True:
+
         with urllib.request.urlopen(config.stream_url) as url:
             img_response = url.read()
             #print(img_response)
             img_array = np.array(bytearray(img_response),dtype=np.uint8)
             test_img = cv2.imdecode(img_array,-1)
+            frame_count +=1
+            if frame_count%2==0:
+                frame_count = 0
+                cv2.imshow("Realtime Detection",test_img)
+                continue
 
             test_img = np.expand_dims(test_img,axis=0)
 
@@ -53,7 +60,6 @@ with tf.Session(graph = detection_graph) as sess:
             
             utils.draw_bounding_box(test_img,detections,boxes,classes,class_map)
             
-
             cv2.imshow("Realtime Detection",test_img)
             if ord('q') == cv2.waitKey(10):
                 exit(0)
