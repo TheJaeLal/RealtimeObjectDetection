@@ -40,10 +40,10 @@ def draw_bounding_box(img,detections,boxes,classes,class_map):
         text_width,text_height = size[0]
         
         #Background
-        cv2.rectangle(img,(xmin,ymin),(xmin+text_width,ymin-text_height),(0,0,255),thickness = -1)
+        cv2.rectangle(img,(xmin,ymin+text_height+1),(xmin+text_width+1,ymin),(0,0,255),thickness = -1)
         
         #Foreground Text
-        cv2.putText(img,class_map[int(classes[i])],(xmin,ymin), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        cv2.putText(img,class_map[int(classes[i])],(xmin,ymin+text_height), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
 
 def get_class_map(class_map_file):

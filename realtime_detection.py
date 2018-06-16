@@ -25,7 +25,9 @@ class_map = utils.get_class_map(config.class_map_file)
 
 with tf.Session(graph = detection_graph) as sess:
     frame_count = 0
+
     while True:
+
 
         with urllib.request.urlopen(config.stream_url) as url:
             img_response = url.read()
