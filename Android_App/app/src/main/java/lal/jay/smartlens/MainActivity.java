@@ -31,13 +31,26 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -444,6 +457,50 @@ public class MainActivity extends AppCompatActivity {
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
+
+    }
+
+    private String serverUrl = "http://35.200.202.208:5000/";
+
+    private void uploadImage()
+    {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                        //If String Response
+                        Log.d("String_Response",response);
+
+//                        //In Case of Json response
+//                        try {
+//                            JSONObject jsonObject = new JSONObject(response);
+//                            String server_response = jsonObject.getString("response");
+//                            Log.d("JSON_Response",server_response);
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                })
+
+        {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> params = new HashMap<>();
+                params.put("name","default_name");
+                params.put("image",);
+                //return super.getParams();
+                return params;
+            }
+        };
+        MySingleton.getInstance(MainActivity.this).addToRequestQueue(stringRequest);
 
     }
 
