@@ -153,9 +153,19 @@ public class MainActivity extends AppCompatActivity {
 
             String response = uploadImage(byteImage);
 
-            Bitmap new_Image = stringToBitmap(response);
+            final Bitmap new_Image = stringToBitmap(response);
 
-            imageView.setImageBitmap(new_Image);
+            runOnUiThread(new Runnable() {
+
+                @Override
+                public void run() {
+
+                    // Stuff that updates the UI
+                    imageView.setImageBitmap(new_Image);
+
+                }
+            });
+
 
             if (image != null)
                 image.close();
@@ -214,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
 
                     //For extracting images/frames..
                     Size[] imgSizes = map.getOutputSizes(ImageReader.class);
-                    Size imgSize = chooseOptimalSize(imgSizes,rotatedWidth,rotatedHeight);
+                    Size imgSize = chooseOptimalSize(imgSizes,width,height);
 
                     //Create an ImageReader instance with the specified size and Image format..
                     imageReader = ImageReader.newInstance(imgSize.getWidth(),imgSize.getHeight(), ImageFormat.YUV_420_888,1);
