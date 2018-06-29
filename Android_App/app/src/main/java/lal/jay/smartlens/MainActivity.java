@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -34,6 +35,7 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -59,38 +61,46 @@ public class MainActivity extends AppCompatActivity {
 
     private RenderScript rs;
 
+    private int globalHeight = 640;
+    private int globalWidth = 480;
+
+    private ImageView imageView;
+
+    //setupCamera
+    //connectCamera
+
     public void onLaunch(View view) {
 
     }
 
-    private TextureView textureView;
-    private TextureView.SurfaceTextureListener textureViewListener = new TextureView.SurfaceTextureListener() {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            //Surface Texture is Available
-            //width x height -> 1080 x 1860 for Redmi Note 4
-
-            //Setup Camera now since the SurfaceTexture is available
-            setupCamera(width, height);
-            //Toast.makeText(getApplicationContext(),"SurfaceCameraId = "+cameraId,Toast.LENGTH_SHORT).show();
-            connectCamera();
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-            return false;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-
-        }
-    };
+    //private TextureView textureView;
+//    private TextureView.SurfaceTextureListener textureViewListener = new TextureView.SurfaceTextureListener() {
+//        @Override
+//        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+//            //Surface Texture is Available
+//            //width x height -> 1080 x 1860 for Redmi Note 4
+//
+//            //Setup Camera now since the SurfaceTexture is available
+//            setupCamera(width, height);
+//            //Toast.makeText(getApplicationContext(),"SurfaceCameraId = "+cameraId,Toast.LENGTH_SHORT).show();
+//            connectCamera();
+//        }
+//
+//        @Override
+//        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+//
+//        }
+//
+//        @Override
+//        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+//            return false;
+//        }
+//
+//        @Override
+//        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+//
+//        }
+//    };
 
     //To hold reference to the Camera Device
     private CameraDevice cameraDevice;
@@ -139,13 +149,13 @@ public class MainActivity extends AppCompatActivity {
 
             //Handle YUV Images....
 
-            if(!uploaded)
-            {
-                String byteImage = imageToString(image);
+            String byteImage = imageToString(image);
 
-                uploadImage(byteImage);
+            String response = uploadImage(byteImage);
 
-            }
+            Bitmap new_Image = stringToBitmap(response);
+
+            imageView.setImageBitmap(new_Image);
 
             if (image != null)
                 image.close();
@@ -212,8 +222,9 @@ public class MainActivity extends AppCompatActivity {
                     //Setup the imageAvailableListener..
                     imageReader.setOnImageAvailableListener(imageAvailableListener,bgThreadHandler);
 
-                    //preview Size is 1440 x 1080 for Redmi Note 4
-                    previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), rotatedWidth, rotatedHeight);
+                    //preview Size is 1440 x 1080 for Redmi Note 4 (SurfaceTexture)
+
+                    //previewSize = chooseOptimalSize(map.getOutputSizes(ImageFormat.FLEX_RGB_888), rotatedWidth, rotatedHeight);
 
                     //Setup the global cameraId to this camId
                     cameraId = camId;
@@ -357,6 +368,7 @@ public class MainActivity extends AppCompatActivity {
         //Create a new Surface from the SurfaceTexture
         //Surface previewSurface = new Surface(surfaceTexture);
 
+
         //Create a list of outputSurfaces (where the Image goes...)
 
         List<Surface> outputSurfaces = new ArrayList<Surface>(0);
@@ -412,8 +424,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Bind textureView variable with layout textureView
-        textureView = (TextureView)findViewById(R.id.textureView);
+        //textureView = (TextureView)findViewById(R.id.textureView);
 
+        imageView = (ImageView)findViewById(R.id.image_view);
 
         //Renderscript object created here, can be used throughout the app lifetime
         rs = RenderScript.create(this);
@@ -427,15 +440,15 @@ public class MainActivity extends AppCompatActivity {
         startBgThread();
 
         //if textureView is not available set a listener that tells us when it's available
-        if(!textureView.isAvailable())
-            textureView.setSurfaceTextureListener(textureViewListener);
+//        if(!textureView.isAvailable())
+//            textureView.setSurfaceTextureListener(textureViewListener);
 
             //If TextureView is Available
-        else{
-            setupCamera(textureView.getWidth(), textureView.getHeight());
+//        else{
+        setupCamera(globalWidth,globalHeight);
 //            Toast.makeText(getApplicationContext(), "CameraId = " + cameraId, Toast.LENGTH_SHORT).show();
-            connectCamera();
-        }
+        connectCamera();
+//        }
     }
 
     @Override
@@ -479,7 +492,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String serverUrl = "http://35.200.202.208:5000/";
 
-    public void uploadImage(final String image)
+    public String uploadImage(final String image)
     {
         RequestFuture<String> future = RequestFuture.newFuture();
 
@@ -500,7 +513,8 @@ public class MainActivity extends AppCompatActivity {
         String response = null;
         try {
             response = future.get(2, TimeUnit.MINUTES);
-            Log.d("Server_Response",response);
+
+            //            Log.d("Server_Response",response);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -511,6 +525,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        return response;
 
     }
 
@@ -594,6 +609,15 @@ public class MainActivity extends AppCompatActivity {
         byte[] imgBytes = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(imgBytes,Base64.DEFAULT);
     }
+
+    private Bitmap stringToBitmap(String encodedImage)
+    {
+        byte[] decodedString = Base64.decode(encodedImage, Base64.DEFAULT);
+        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+        return decodedByte;
+    }
+
 
 
 }
