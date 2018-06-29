@@ -61,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RenderScript rs;
 
-    private int globalHeight = 720;
-    private int globalWidth = 1280;
+    private int globalHeight = 360;
+    private int globalWidth = 640;
 
     private ImageView imageView;
 
@@ -520,6 +520,11 @@ public class MainActivity extends AppCompatActivity {
                 //return super.getParams();
                 return params;
             }
+
+            @Override
+            public Priority getPriority() {
+                return Priority.IMMEDIATE;
+            }
         };
         MySingleton.getInstance(MainActivity.this).addToRequestQueue(stringRequest);
 
@@ -622,7 +627,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bitmap = YUV_420_888_toRGB(image,width,height);
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG,40,byteArrayOutputStream);
 
         byte[] imgBytes = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(imgBytes,Base64.DEFAULT);
