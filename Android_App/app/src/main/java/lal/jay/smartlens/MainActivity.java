@@ -28,6 +28,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -47,6 +48,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -127,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
     private Size previewSize;
     private ImageReader imageReader;
 
+    //Upload flag for uploading only 1 image...
+    private boolean uploaded = false;
+
     private ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
@@ -140,6 +145,17 @@ public class MainActivity extends AppCompatActivity {
                 return;
 
             //Handle YUV Images....
+
+            if(!uploaded)
+            {
+                uploadImage(image);
+
+
+            }
+
+
+            if (image != null && uploaded==true)
+                image.close();
 
             //Send them to the server...
 
@@ -166,8 +182,6 @@ public class MainActivity extends AppCompatActivity {
 //            Log.i("Saved file", ""+mFile.toString());
 //
 
-            if (image != null)
-                image.close();
         }
     };
 
@@ -471,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String serverUrl = "http://35.200.202.208:5000/";
 
-    private void uploadImage()
+    private void uploadImage(final Image image)
     {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl,
                 new Response.Listener<String>() {
@@ -503,8 +517,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String,String> params = new HashMap<>();
-                params.put("name","default_name");
-//                params.put("image",);
+                params.put("name","default_name.jpg");
+                params.put("image",imageToString(image));
+                uploaded = true;
                 //return super.getParams();
                 return params;
             }
@@ -579,6 +594,19 @@ public class MainActivity extends AppCompatActivity {
         outAlloc.copyTo(outBitmap);
 
         return outBitmap;
+    }
+
+    private String imageToString(Image image)
+    {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        Bitmap bitmap = YUV_420_888_toRGB(image,width,height);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
+        byte[] imgBytes = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(imgBytes,Base64.DEFAULT);
     }
 
 
