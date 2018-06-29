@@ -61,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RenderScript rs;
 
-    private int globalHeight = 640;
-    private int globalWidth = 480;
+    private int globalHeight = 720;
+    private int globalWidth = 1280;
 
     private ImageView imageView;
 
@@ -209,22 +209,25 @@ public class MainActivity extends AppCompatActivity {
 
                     //Adjust Sensor to device orientation
                     int deviceOrientation = getWindowManager().getDefaultDisplay().getRotation();
+
                     int totalRotation = sensorToDeviceRotation(camChars, deviceOrientation);
+
 
                     boolean swapRotation = totalRotation == 90 || totalRotation == 270;
 
                     int rotatedWidth = width;
                     int rotatedHeight = height;
 
-                    if (swapRotation) {
-                        rotatedWidth = height;
-                        rotatedHeight = width;
-                    }
+//                    if (swapRotation) {
+//                        rotatedWidth = height;
+//                        rotatedHeight = width;
+//                    }
+
                     StreamConfigurationMap map = camChars.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
                     //For extracting images/frames..
                     Size[] imgSizes = map.getOutputSizes(ImageReader.class);
-                    Size imgSize = chooseOptimalSize(imgSizes,width,height);
+                    Size imgSize = chooseOptimalSize(imgSizes,rotatedWidth,rotatedHeight);
 
                     //Create an ImageReader instance with the specified size and Image format..
                     imageReader = ImageReader.newInstance(imgSize.getWidth(),imgSize.getHeight(), ImageFormat.YUV_420_888,1);
@@ -611,11 +614,16 @@ public class MainActivity extends AppCompatActivity {
     {
         int width = image.getWidth();
         int height = image.getHeight();
+        Log.d("INFO****",width+" x "+height);
+
+//        width = 1280;
+//        height = 720;
 
         Bitmap bitmap = YUV_420_888_toRGB(image,width,height);
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
+
         byte[] imgBytes = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(imgBytes,Base64.DEFAULT);
     }
