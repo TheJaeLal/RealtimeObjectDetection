@@ -24,7 +24,6 @@ import android.renderscript.RenderScript;
 import android.renderscript.Script;
 import android.renderscript.Type;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,18 +38,10 @@ import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
+import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,7 +49,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -148,13 +141,13 @@ public class MainActivity extends AppCompatActivity {
 
             if(!uploaded)
             {
-                uploadImage(image);
+                String byteImage = imageToString(image);
 
+                uploadImage(byteImage);
 
             }
 
-
-            if (image != null && uploaded==true)
+            if (image != null)
                 image.close();
 
             //Send them to the server...
@@ -422,8 +415,9 @@ public class MainActivity extends AppCompatActivity {
         textureView = (TextureView)findViewById(R.id.textureView);
 
 
-        //Renderscript object created here, can be used throught the app lifetime
-        RenderScript.create(this);
+        //Renderscript object created here, can be used throughout the app lifetime
+        rs = RenderScript.create(this);
+
     }
 
     @Override
@@ -485,46 +479,38 @@ public class MainActivity extends AppCompatActivity {
 
     private String serverUrl = "http://35.200.202.208:5000/";
 
-    private void uploadImage(final Image image)
+    public void uploadImage(final String image)
     {
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
+        RequestFuture<String> future = RequestFuture.newFuture();
 
-                        //If String Response
-                        Log.d("String_Response",response);
-
-//                        //In Case of Json response
-//                        try {
-//                            JSONObject jsonObject = new JSONObject(response);
-//                            String server_response = jsonObject.getString("response");
-//                            Log.d("JSON_Response",server_response);
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-
-
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                    }
-                })
-
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl,future,future)
         {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String,String> params = new HashMap<>();
                 params.put("name","default_name.jpg");
-                params.put("image",imageToString(image));
+                params.put("image",image);
                 uploaded = true;
                 //return super.getParams();
                 return params;
             }
         };
         MySingleton.getInstance(MainActivity.this).addToRequestQueue(stringRequest);
+
+        String response = null;
+        try {
+            response = future.get(2, TimeUnit.MINUTES);
+            Log.d("Server_Response",response);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+
+
 
     }
 
@@ -533,15 +519,15 @@ public class MainActivity extends AppCompatActivity {
         // Get the three image planes
         Image.Plane[] planes = image.getPlanes();
         ByteBuffer buffer = planes[0].getBuffer();
-        byte[] y = new byte[buffer.remaining()];
+        byte[] y = new byte[buffer.capacity()];
         buffer.get(y);
 
         buffer = planes[1].getBuffer();
-        byte[] u = new byte[buffer.remaining()];
+        byte[] u = new byte[buffer.capacity()];
         buffer.get(u);
 
         buffer = planes[2].getBuffer();
-        byte[] v = new byte[buffer.remaining()];
+        byte[] v = new byte[buffer.capacity()];
         buffer.get(v);
 
         // get the relevant RowStrides and PixelStrides
@@ -561,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
         Type.Builder typeUcharY = new Type.Builder(rs, Element.U8(rs));
         typeUcharY.setX(yRowStride).setY(height);
         Allocation yAlloc = Allocation.createTyped(rs, typeUcharY.create());
-        yAlloc.copyFrom(y);
+        yAlloc.copy1DRangeFrom(0, y.length, y);
         mYuv420.set_ypsIn(yAlloc);
 
         Type.Builder typeUcharUV = new Type.Builder(rs, Element.U8(rs));
