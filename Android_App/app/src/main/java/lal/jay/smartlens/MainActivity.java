@@ -503,7 +503,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private String serverUrl = "http://35.200.202.208:5000/";
+//    private String serverUrl = "http://35.200.202.208:5000/";
+
+    private String serverUrl = "http://192.168.43.147:5000/";
 
     public String uploadImage(final String image)
     {

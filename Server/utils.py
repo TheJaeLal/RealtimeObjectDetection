@@ -59,7 +59,7 @@ def get_class_map(class_map_file):
 
 def get_detections(scores,threshold_score):
     detections = []
-
+    
     for i,score in enumerate(scores):
         if score >= threshold_score:
             detections.append(i)
