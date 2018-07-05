@@ -19,7 +19,18 @@ def save_image(path,img):
     cv2.imwrite(path,img)
     
 
-def draw_bounding_box(img,detections,boxes,classes,class_map):
+def apply_mask(image,mask,alpha=0.7):
+    """Apply the given mask to the image.
+    """
+    #for c in range(3):
+    image[:, :, 0] = np.where(mask >= 0.5,
+                              image[:, :, 0] *
+                              (1 - alpha) + alpha * 0.7 * 255,
+                              image[:, :, 0])
+    return image
+
+
+def draw_bounding_box(img,detections,boxes,classes,class_map,masks=None):
     img_height,img_width,_ = img.shape
     
     for i in detections:
@@ -31,8 +42,32 @@ def draw_bounding_box(img,detections,boxes,classes,class_map):
         ymin = int(ymin*img_height)
         ymax = int(ymax*img_height)
         
+
+
         cv2.rectangle(img,(xmin,ymin),(xmax,ymax),(0,0,255),thickness = 1)
         
+        box_height = ymax - ymin
+        box_width = xmax - xmin
+
+        if masks is not None:
+
+            #normalize mask_values
+            masks[i] *= 1.0/masks[i].max()
+
+            # #Quantize
+            # masks[i] = np.where()
+            
+            #scale mask
+            scaled_mask = cv2.resize(masks[i],(box_width,box_height))
+
+            #mask as image
+            image_mask = np.zeros((img_height,img_width))
+            
+            image_mask[ymin:ymax,xmin:xmax] = scaled_mask
+
+            #apply mask
+            img = apply_mask(img,image_mask)
+
         font = cv2.FONT_HERSHEY_SIMPLEX
         
         size = cv2.getTextSize(class_map[int(classes[i])],cv2.FONT_HERSHEY_SIMPLEX,0.5,1)
