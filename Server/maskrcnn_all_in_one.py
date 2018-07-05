@@ -28,7 +28,7 @@ detection_graph = tf.Graph()
 
 with detection_graph.as_default():
     od_graph_def = tf.GraphDef()
-    with tf.gfile.GFile(config.std_model_infer_path,mode='rb') as graph_file:
+    with tf.gfile.GFile(config.mask_model_infer_path,mode='rb') as graph_file:
         serialized_graph = graph_file.read()
         od_graph_def.ParseFromString(serialized_graph)
         tf.import_graph_def(od_graph_def)
@@ -43,6 +43,8 @@ input_ = sess.graph.get_tensor_by_name("import/image_tensor:0")
 boxes = sess.graph.get_tensor_by_name("import/detection_boxes:0")
 scores = sess.graph.get_tensor_by_name("import/detection_scores:0")
 classes = sess.graph.get_tensor_by_name("import/detection_classes:0")
+masks = sess.graph.get_tensor_by_name("import/detection_masks:0")
+
 
 count = 0
 
@@ -70,18 +72,19 @@ def index():
     
     #result_array = detect.run(input_array)
     
-    (_boxes, _scores, _classes) = sess.run( 
-                    [boxes, scores, classes],
+    (_boxes, _scores, _classes, _masks) = sess.run( 
+                    [boxes, scores, classes, masks],
                     feed_dict={input_: input_array})
 
     _boxes = np.squeeze(_boxes,axis=0)
     _scores = np.squeeze(_scores,axis=0)
     _classes = np.squeeze(_classes,axis=0)
+    _masks = np.squeeze(_masks,axis=0)
     input_array = np.squeeze(input_array,axis=0)
 
     detections = utils.get_detections(_scores,config.threshold_score)
 
-    utils.draw_bounding_box(input_array,detections,_boxes,_classes,class_map)
+    utils.draw_bounding_box(input_array,detections,_boxes,_classes,class_map,_masks)
 
     result_image = Image.fromarray(input_array)
     
