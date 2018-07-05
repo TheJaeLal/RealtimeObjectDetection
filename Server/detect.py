@@ -12,7 +12,7 @@ detection_graph = tf.Graph()
 
 with detection_graph.as_default():
     od_graph_def = tf.GraphDef()
-    with tf.gfile.GFile(config.path_to_infer_graph,mode='rb') as graph_file:
+    with tf.gfile.GFile(config.std_model_infer_path,mode='rb') as graph_file:
         serialized_graph = graph_file.read()
         od_graph_def.ParseFromString(serialized_graph)
         tf.import_graph_def(od_graph_def)
@@ -22,11 +22,12 @@ class_map = utils.get_class_map(config.class_map_file)
 
 
 def run(test_img):
-    
-    with tf.Session(graph = detection_graph) as sess:
-    #Load the input image
+
+    # #Load the input image
     # img_path = os.path.join(config.test_imgs_dir,img_name)
     # test_img = utils.load_image(img_path)
+    
+    with tf.Session(graph = detection_graph) as sess:
 
     #Get access to the relevant input and output tensors
         input_ = sess.graph.get_tensor_by_name("import/image_tensor:0")
