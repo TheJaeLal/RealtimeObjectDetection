@@ -7,12 +7,20 @@
     tools:context=".MainActivity">
 
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:visibility="invisible"/>
+
     <TextureView
         android:id="@+id/textureView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
-        android:scaleType="fitCenter"/>
+        android:scaleType="fitCenter" />
 
     <Button
         android:id="@+id/button"
@@ -27,6 +35,5 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:onClick="detectObjects"/>
-
 
 </RelativeLayout>

@@ -3,15 +3,15 @@ package lal.jay.picsmart;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
-import android.graphics.Paint;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -31,8 +31,10 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private int globalHeight = 360;
     private int globalWidth = 640;
     private TextureView textureView;
+    private ImageView imageView;
+
     private TextureView.SurfaceTextureListener textureViewListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
@@ -113,12 +117,33 @@ public class MainActivity extends AppCompatActivity {
         public void onImageAvailable(ImageReader imageReader) {
 
             Image image = imageReader.acquireNextImage();
-            if(image!=null)
-            {
-//                Toast.makeText(getApplicationContext(), "Image Captured!!", Toast.LENGTH_SHORT).show();
-                Log.d("ImageAvailable","Image Captured!!");
-                image.close();
-            }
+            if(image==null)
+                return;
+
+//            Toast.makeText(getApplicationContext(), "Image Captured!!", Toast.LENGTH_SHORT).show();
+            Log.d("ImageAvailable","Image Captured!!");
+
+            final Bitmap bitmap = imageToBitmap(image);
+
+            runOnUiThread(new Runnable() {
+
+                @Override
+                public void run() {
+
+                    // Stuff that updates the UI
+//                    imageView.setVisibility(ImageView.VISIBLE);
+                    imageView.setImageBitmap(bitmap);
+                    imageView.setVisibility(ImageView.VISIBLE);
+                    textureView.setVisibility(TextureView.INVISIBLE);
+                }
+            });
+
+//            String response = uploadImage(byteImage);
+
+//            final Bitmap new_Image = stringToBitmap(response);
+
+            image.close();
+
 
 
         }
@@ -354,7 +379,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureRequestBuilder.addTarget(imageReader.getSurface());
-//            captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION,totalRotation);
+            captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION,totalRotation);
 
             CameraCaptureSession.CaptureCallback stillCaptureCallback = new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -462,6 +487,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        imageView = (ImageView)findViewById(R.id.imageView);
         //Bind textureView variable with layout textureView
         textureView = (TextureView)findViewById(R.id.textureView);
 
@@ -525,4 +551,36 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private Bitmap imageToBitmap(Image image)
+    {
+        Image.Plane[] planes = image.getPlanes();
+
+        ByteBuffer buffer = planes[0].getBuffer();
+
+        buffer.rewind();
+
+        byte[] data = new byte[buffer.capacity()];
+
+        buffer.get(data);
+
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        return bitmap;
+        //
+//        int width = image.getWidth();
+//        int height = image.getHeight();
+//        Log.d("INFO****",width+" x "+height);
+//
+////        width = 1280;
+////        height = 720;
+//
+//        Bitmap bitmap = YUV_420_888_toRGB(image,width,height);
+//
+//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//        bitmap.compress(Bitmap.CompressFormat.JPEG,40,byteArrayOutputStream);
+//
+//        byte[] imgBytes = byteArrayOutputStream.toByteArray();
+//        return Base64.encodeToString(imgBytes,Base64.DEFAULT);
+    }
+
 }
