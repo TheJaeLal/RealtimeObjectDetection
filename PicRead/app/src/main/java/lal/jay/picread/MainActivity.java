@@ -20,6 +20,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -45,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView imageView;
     private Button detectButton;
+    private ProgressBar progressBar;
+    private TextView progressText;
 
 //    private static String serverUrl = "http://35.200.202.208:5000/";
 
@@ -164,6 +168,12 @@ public class MainActivity extends AppCompatActivity {
     public void uploadImage(final String image)
     {
 
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
+        progressText = findViewById(R.id.progressTextView);
+        progressText.setVisibility(View.VISIBLE);
+
         StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -173,12 +183,20 @@ public class MainActivity extends AppCompatActivity {
 
                 imageView.setImageBitmap(resultImage);
 
+                progressBar.setVisibility(View.INVISIBLE);
+                progressText.setVisibility(View.INVISIBLE);
             }
         },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.d("Network", "Erroneous Response!");
+
+                        progressBar.setVisibility(View.INVISIBLE);
+                        progressText.setVisibility(View.INVISIBLE);
+
+                        Toast.makeText(getApplicationContext(),"Unable to reach Server, Check Network Connection",Toast.LENGTH_SHORT).show();
+
                     }
                 })
         {
