@@ -170,19 +170,21 @@ public class MainActivity extends AppCompatActivity {
                     int rotatedWidth = width;
                     int rotatedHeight = height;
 
-//                    if (swapRotation) {
-//                        rotatedWidth = height;
-//                        rotatedHeight = width;
-//                    }
+                    if (swapRotation) {
+                        rotatedWidth = height;
+                        rotatedHeight = width;
+                    }
 
                     StreamConfigurationMap map = camChars.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
                     //For extracting images/frames..
-//                    Size[] imgSizes = map.getOutputSizes(ImageReader.class);
-                    Size imgSize = chooseOptimalSize(map.getOutputSizes(ImageFormat.JPEG),rotatedWidth,rotatedHeight);
+                    Size[] imgSizes = map.getOutputSizes(ImageReader.class);
+//                    Size imgSize = chooseOptimalSize(map.getOutputSizes(ImageFormat.JPEG),rotatedWidth,rotatedHeight);
+                    Size imgSize = chooseOptimalSize(imgSizes,rotatedWidth,rotatedHeight);
 
                     //Create an ImageReader instance with the specified size and Image format..
                     imageReader = ImageReader.newInstance(imgSize.getWidth(),imgSize.getHeight(), ImageFormat.JPEG,1);
+//                    imageReader = ImageReader.newInstance(rotatedWidth,rotatedHeight, ImageFormat.JPEG,1);
 
 //                    Setup the imageAvailableListener..
                     imageReader.setOnImageAvailableListener(imageAvailableListener,bgThreadHandler);
@@ -269,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
         for (Size option : choices) {
             if (option.getHeight() == option.getWidth() * height / width && option.getWidth() >= width && option.getHeight() >= height)
                 bigEnough.add(option);
-
         }
 
         if (bigEnough.size() > 0)
@@ -379,6 +380,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureRequestBuilder.addTarget(imageReader.getSurface());
+
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION,totalRotation);
 
             CameraCaptureSession.CaptureCallback stillCaptureCallback = new CameraCaptureSession.CaptureCallback() {

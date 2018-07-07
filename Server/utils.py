@@ -44,7 +44,12 @@ def draw_bounding_box(img,detections,boxes,classes,class_map,masks=None):
         
 
 
-        cv2.rectangle(img,(xmin,ymin),(xmax,ymax),(0,0,255),thickness = 1)
+        #Rectangle thickness
+        box_thickness = int(img_width/1000.0)
+        font_scale = int(img_width/1000.0)
+        font_thickness = 2
+
+        cv2.rectangle(img,(xmin,ymin),(xmax,ymax),(0,0,255),thickness = box_thickness)
         
         box_height = ymax - ymin
         box_width = xmax - xmin
@@ -70,7 +75,7 @@ def draw_bounding_box(img,detections,boxes,classes,class_map,masks=None):
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         
-        size = cv2.getTextSize(class_map[int(classes[i])],cv2.FONT_HERSHEY_SIMPLEX,0.5,1)
+        size = cv2.getTextSize(class_map[int(classes[i])],cv2.FONT_HERSHEY_SIMPLEX,font_scale,font_thickness)
 
         text_width,text_height = size[0]
         
@@ -78,7 +83,7 @@ def draw_bounding_box(img,detections,boxes,classes,class_map,masks=None):
         cv2.rectangle(img,(xmin,ymin+text_height+1),(xmin+text_width+1,ymin),(0,0,255),thickness = -1)
         
         #Foreground Text
-        cv2.putText(img,class_map[int(classes[i])],(xmin,ymin+text_height), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        cv2.putText(img,class_map[int(classes[i])],(xmin,ymin+text_height), font, font_scale,(255,255,255),font_thickness,cv2.LINE_AA)
 
 
 def get_class_map(class_map_file):

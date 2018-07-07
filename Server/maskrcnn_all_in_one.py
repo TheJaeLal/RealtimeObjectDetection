@@ -64,10 +64,12 @@ def index():
     
     image = Image.open(BytesIO(base64.b64decode(image_string)))    
     
-    rotated_image = image.rotate(270,expand=True)
+    # rotated_image = image.rotate(270,expand=True)
     
-    input_array = np.array(rotated_image) 
+    # input_array = np.array(rotated_image) 
     
+    input_array = np.array(image) 
+
     input_array = np.expand_dims(input_array,axis=0)
     
     #result_array = detect.run(input_array)
@@ -90,7 +92,7 @@ def index():
     
     #print('rotated_image.shape = ',input_array.shape)
     
-    #rotated_image.save('default.jpg',format='JPEG')
+    result_image.save('output.jpg',format='JPEG')
     
     #convert image back to string..
     buffered = BytesIO()
@@ -121,6 +123,8 @@ def index():
     
     response = final_img_str
     
+    # print("Returning Image Response...",file=sys.stderr)
+
     return response
 
 if(__name__ == "__main__"):

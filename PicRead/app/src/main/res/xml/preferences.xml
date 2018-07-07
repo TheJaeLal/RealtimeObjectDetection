@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <EditTextPreference
-        android:defaultValue="192.168.43.147"
-        android:key="pref_server_ip"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:summary="Enter the IPv4 Address of Server"
-        android:title="Server IP Address" />
+    <PreferenceCategory
+        android:title="Application Preferences">
 
-    <ListPreference
-        android:key="pref_image_quality"
+        <EditTextPreference
+            android:defaultValue="35.200.202.208"
+            android:key="pref_server_ip"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="Enter the IPv4 Address of Server"
+            android:title="Server IP Address" />
 
-        android:title="Image Quality"
-        android:summary="Select JPEG Image Quality sent to Server"
+        <ListPreference
+            android:key="pref_image_quality"
 
-
-        android:entries="@array/image_quality_options"
-        android:entryValues="@array/image_quality_options"
-        android:defaultValue="20"
-
-        />
+            android:title="Image Quality"
+            android:summary="Select JPEG Image Quality sent to Server"
 
 
+            android:entries="@array/image_quality_options"
+            android:entryValues="@array/image_quality_options"
+            android:defaultValue="20"
+
+            />
+
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

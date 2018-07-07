@@ -181,7 +181,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        String response = uploadImage(bitmap2String(bitmap));
 
-        uploadImage(bitmap2String(bitmap));
+
+        uploadImage(bitmap2String(bitmap,getImageQuality()));
 
 //        if (response!=null) {
 //            Log.d("Network", "Response received");
@@ -213,9 +214,14 @@ public class MainActivity extends AppCompatActivity {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d("Network", "Response received");
+//                Log.d("Network", "Response :"+response.length());
+
+                if(response==null || response == "" )
+                    Log.d("Network","Empty Response!");
 
                 Bitmap resultImage = string2Bitmap(response);
+
+                Log.d("Network","Converted Response to Bitmap!");
 
                 imageView.setImageBitmap(resultImage);
 
@@ -262,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                20000,
+                300000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
@@ -270,10 +276,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public String bitmap2String(Bitmap bitmap)
+    public String bitmap2String(Bitmap bitmap,int imageQuality)
     {
+
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,40,byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG,imageQuality,byteArrayOutputStream);
 
         byte[] imgBytes = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(imgBytes, Base64.DEFAULT);
@@ -281,7 +288,10 @@ public class MainActivity extends AppCompatActivity {
 
     private Bitmap string2Bitmap(String encodedImage)
     {
+//        Log.d("OutputString",encodedImage);
+
         byte[] decodedString = Base64.decode(encodedImage, Base64.DEFAULT);
+
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
         return decodedByte;
@@ -304,6 +314,16 @@ public class MainActivity extends AppCompatActivity {
 
         return serverUrl;
 
+    }
+
+    private int getImageQuality()
+    {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = sharedPref.getString("pref_image_quality","");
+
+        int imageQuality = Integer.parseInt(value);
+
+        return imageQuality;
     }
 
 
@@ -339,5 +359,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(intent, "Share Image"));
 
     }
+
+
 }
 
