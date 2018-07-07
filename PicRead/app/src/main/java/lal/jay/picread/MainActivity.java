@@ -1,7 +1,9 @@
 package lal.jay.picread;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,17 +12,21 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,14 +53,20 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView imageView;
     private Button detectButton;
+    private Button captureButton;
     private ProgressBar progressBar;
     private TextView progressText;
 
 //    private static String serverUrl = "http://35.200.202.208:5000/";
 
-    private static String serverUrl = "http://192.168.43.147:5000/";
+//    private static String serverUrl = "http://192.168.43.147:5000/";
+//
+//    private static String serverUrl;
+
+    private static int portNo = 5000;
 
     private static final int REQUEST_CAMERA_PERMISSION_RESULT = 0;
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -74,7 +86,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        captureButton = (Button) findViewById(R.id.btn_capture);
+        detectButton = findViewById(R.id.btn_detect);
         imageView = (ImageView) findViewById(R.id.imageView);
+
 
         //For Android Marshmallow Onwards..
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -96,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
 
     }
 
@@ -120,8 +137,12 @@ public class MainActivity extends AppCompatActivity {
 
             imageView.setImageURI(file);
 
-            detectButton = findViewById(R.id.btn_detect);
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)captureButton.getLayoutParams();
+            layoutParams.removeRule(RelativeLayout.CENTER_HORIZONTAL);
+            captureButton.setLayoutParams(layoutParams);
+
             detectButton.setVisibility(View.VISIBLE);
+
 
         }
     }
@@ -174,6 +195,12 @@ public class MainActivity extends AppCompatActivity {
         progressText = findViewById(R.id.progressTextView);
         progressText.setVisibility(View.VISIBLE);
 
+        //Resolve server URL
+
+        String serverUrl = getServerUrl();
+
+        Log.d("Network","Sending request to Server: "+serverUrl);
+
         StringRequest stringRequest = new StringRequest(Request.Method.POST, serverUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -185,6 +212,12 @@ public class MainActivity extends AppCompatActivity {
 
                 progressBar.setVisibility(View.INVISIBLE);
                 progressText.setVisibility(View.INVISIBLE);
+                detectButton.setVisibility(View.INVISIBLE);
+
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)captureButton.getLayoutParams();
+                layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                captureButton.setLayoutParams(layoutParams);
+
             }
         },
                 new Response.ErrorListener() {
@@ -242,4 +275,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void launchSettings(View view) {
+        Log.d("onClick","Launching Settings Activity");
+        startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+    }
+
+    private String getServerUrl()
+    {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String serverIPAddress = sharedPref.getString("pref_server_ip","");
+
+        String serverUrl = "http://" + serverIPAddress + ":" + portNo + "/";
+
+        //        Log.d("Preferences","Serever IP Address = "+serverIPAddress);
+
+        return serverUrl;
+
+    }
+
+
 }
+
