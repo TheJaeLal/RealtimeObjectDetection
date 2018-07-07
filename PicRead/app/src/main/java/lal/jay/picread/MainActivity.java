@@ -52,8 +52,14 @@ import java.util.concurrent.TimeoutException;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView imageView;
-    private Button detectButton;
+
+    //Buttons..
+
     private Button captureButton;
+    private Button detectButton;
+    private Button clearButton;
+    private Button shareButton;
+
     private ProgressBar progressBar;
     private TextView progressText;
 
@@ -87,8 +93,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        captureButton = (Button) findViewById(R.id.btn_capture);
+        captureButton = findViewById(R.id.btn_capture);
         detectButton = findViewById(R.id.btn_detect);
+        clearButton = findViewById(R.id.btn_clear);
+        shareButton = findViewById(R.id.btn_share);
+
         imageView = (ImageView) findViewById(R.id.imageView);
 
 
@@ -213,10 +222,14 @@ public class MainActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.INVISIBLE);
                 progressText.setVisibility(View.INVISIBLE);
                 detectButton.setVisibility(View.INVISIBLE);
+                captureButton.setVisibility(View.INVISIBLE);
 
-                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)captureButton.getLayoutParams();
-                layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-                captureButton.setLayoutParams(layoutParams);
+                clearButton.setVisibility(View.VISIBLE);
+                shareButton.setVisibility(View.VISIBLE);
+
+//                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)captureButton.getLayoutParams();
+//                layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+//                captureButton.setLayoutParams(layoutParams);
 
             }
         },
@@ -294,5 +307,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void clearImage(View view) {
+        //Get ImageView Content as Bitmap!
+        BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
+        Bitmap bitmap = drawable.getBitmap();
+        imageView.setImageDrawable(null);
+        bitmap.recycle();
+
+        shareButton.setVisibility(View.INVISIBLE);
+        clearButton.setVisibility(View.INVISIBLE);
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)captureButton.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        captureButton.setLayoutParams(layoutParams);
+
+        captureButton.setVisibility(View.VISIBLE);
+
+    }
+
+    public void shareImage(View view) {
+
+        BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
+        Bitmap bitmap = drawable.getBitmap();
+
+        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Object Detection", null);
+        Uri uri = Uri.parse(path);
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("image/jpeg");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        startActivity(Intent.createChooser(intent, "Share Image"));
+
+    }
 }
 
