@@ -37,6 +37,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
+import com.bumptech.glide.Glide;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         clearButton = findViewById(R.id.btn_clear);
         shareButton = findViewById(R.id.btn_share);
 
-        imageView = (ImageView) findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imageView);
 
 
         //For Android Marshmallow Onwards..
@@ -144,7 +145,11 @@ public class MainActivity extends AppCompatActivity {
         {
             Log.d("IntentResult","Intent Call Successfull!");
 
-            imageView.setImageURI(file);
+//            imageView.setImageURI(file);
+
+            Glide.with(MainActivity.this)
+            .load(file)
+                    .into(imageView);
 
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)captureButton.getLayoutParams();
             layoutParams.removeRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -219,11 +224,21 @@ public class MainActivity extends AppCompatActivity {
                 if(response==null || response == "" )
                     Log.d("Network","Empty Response!");
 
-                Bitmap resultImage = string2Bitmap(response);
+                byte[] decodedString = Base64.decode(response, Base64.DEFAULT);
+
+                Glide.with(MainActivity.this)
+                        .load(decodedString)
+                        .into(imageView);
+
+//                Bitmap resultImage = string2Bitmap(response);
 
                 Log.d("Network","Converted Response to Bitmap!");
 
-                imageView.setImageBitmap(resultImage);
+
+                //
+//                Glide.with(MainActivity.this)
+//                        .load()
+//                imageView.setImageBitmap(resultImage);
 
                 progressBar.setVisibility(View.INVISIBLE);
                 progressText.setVisibility(View.INVISIBLE);
@@ -286,16 +301,16 @@ public class MainActivity extends AppCompatActivity {
         return Base64.encodeToString(imgBytes, Base64.DEFAULT);
     }
 
-    private Bitmap string2Bitmap(String encodedImage)
-    {
-//        Log.d("OutputString",encodedImage);
-
-        byte[] decodedString = Base64.decode(encodedImage, Base64.DEFAULT);
-
-        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
-        return decodedByte;
-    }
+//    private Bitmap string2Bitmap(String encodedImage)
+//    {
+////        Log.d("OutputString",encodedImage);
+//
+//        byte[] decodedString = Base64.decode(encodedImage, Base64.DEFAULT);
+//
+//        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//
+//        return decodedByte;
+//    }
 
 
     public void launchSettings(View view) {
