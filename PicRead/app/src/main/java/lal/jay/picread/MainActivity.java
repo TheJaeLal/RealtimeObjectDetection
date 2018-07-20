@@ -2,6 +2,7 @@ package lal.jay.picread;
 
 import android.Manifest;
 import android.app.ActionBar;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -25,7 +26,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,15 +61,10 @@ public class MainActivity extends AppCompatActivity {
     private Button clearButton;
     private Button shareButton;
 
-    private ProgressBar progressBar;
-    private TextView progressText;
+    private ProgressDialog progressDialog;
 
-//    private static String serverUrl = "http://35.200.202.208:5000/";
-
-//    private static String serverUrl = "http://192.168.43.147:5000/";
-//
-//    private static String serverUrl;
-
+    private static String defaultImageQuality = "20";
+    private static String defaultIPAddress = "35.200.202.208";
     private static int portNo = 5000;
 
     private static final int REQUEST_CAMERA_PERMISSION_RESULT = 0;
@@ -204,11 +199,11 @@ public class MainActivity extends AppCompatActivity {
     public void uploadImage(final String image)
     {
 
-        progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE);
-
-        progressText = findViewById(R.id.progressTextView);
-        progressText.setVisibility(View.VISIBLE);
+        progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setMessage("Detecting Objects...");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setIndeterminate(true);
+        progressDialog.show();
 
         //Resolve server URL
 
@@ -240,8 +235,8 @@ public class MainActivity extends AppCompatActivity {
 //                        .load()
 //                imageView.setImageBitmap(resultImage);
 
-                progressBar.setVisibility(View.INVISIBLE);
-                progressText.setVisibility(View.INVISIBLE);
+
+                progressDialog.hide();
                 detectButton.setVisibility(View.INVISIBLE);
                 captureButton.setVisibility(View.INVISIBLE);
 
@@ -259,8 +254,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onErrorResponse(VolleyError error) {
                         Log.d("Network", "Erroneous Response!");
 
-                        progressBar.setVisibility(View.INVISIBLE);
-                        progressText.setVisibility(View.INVISIBLE);
+                       progressDialog.hide();
 
                         Toast.makeText(getApplicationContext(),"Unable to reach Server, Check Network Connection",Toast.LENGTH_SHORT).show();
 
@@ -321,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
     private String getServerUrl()
     {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String serverIPAddress = sharedPref.getString("pref_server_ip","");
+        String serverIPAddress = sharedPref.getString("pref_server_ip",defaultIPAddress);
 
         String serverUrl = "http://" + serverIPAddress + ":" + portNo + "/";
 
@@ -334,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
     private int getImageQuality()
     {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String value = sharedPref.getString("pref_image_quality","");
+        String value = sharedPref.getString("pref_image_quality",defaultImageQuality);
 
         int imageQuality = Integer.parseInt(value);
 
